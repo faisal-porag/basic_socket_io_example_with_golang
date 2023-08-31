@@ -11,7 +11,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 <script>
-    const socket = io();
+    const socket = io("http://localhost:4550/socket.io/"); // Replace with your server's URL and port
 
     const messages = document.getElementById("messages");
     const messageInput = document.getElementById("messageInput");
