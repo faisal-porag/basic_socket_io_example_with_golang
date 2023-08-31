@@ -26,7 +26,12 @@ func main() {
 
 	server := socketio.NewServer(nil)
 
-	server.OnConnect("/", handleConnect)
+	server.OnConnect("/", func(s socketio.Conn) error {
+		log.Println("Client connected:", s.ID())
+		return nil
+	})
+
+	//server.OnConnect("/", handleConnect)
 	server.OnEvent("/", "chat message", handleChatMessage)
 	server.OnDisconnect("/", handleDisconnect)
 
