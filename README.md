@@ -126,21 +126,104 @@ communication capabilities.
 ---
 
 
+Here's a basic example of a production-level server-client application using `Socket.IO` in Go (Golang). 
+This example demonstrates how to set up a simple chat server and client using the `go.socket.io` library for Socket.IO.
 
+- `Install Dependencies:`
+You'll need to install the go.socket.io library using the following command:
+```shell
+go get github.com/googollee/go-socket.io
+```
 
+- `Server (main.go):`
+```shell
+package main
 
+import (
+	"log"
+	"net/http"
+	
+	socketio "github.com/googollee/go-socket.io"
+)
 
+func main() {
+	server, err := socketio.NewServer(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	server.OnConnect("/", func(s socketio.Conn) error {
+		log.Println("Client connected:", s.ID())
+		return nil
+	})
 
+	server.OnEvent("/", "chat message", func(s socketio.Conn, msg string) {
+		log.Println("Message received:", msg)
+		server.BroadcastToRoom("/", "chat", "chat message", msg)
+	})
 
+	http.Handle("/socket.io/", server)
+	http.Handle("/", http.FileServer(http.Dir("./public")))
 
+	log.Println("Server started at :5000")
+	log.Fatal(http.ListenAndServe(":5000", nil))
+}
+```
 
+- `Client (public/index.html):`
+Create a directory named "public" in the same directory as your server.go and inside that directory, 
+create an index.html file:
 
+```shell
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" /><button>Send</button>
+  </form>
+  
+  <script>
+    const socket = io();
 
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
 
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', input.value);
+        input.value = '';
+      }
+    });
 
+    socket.on('chat message', function(msg) {
+      const item = document.createElement('li');
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+  </script>
+</body>
+</html>
+```
 
+- `Run the Application:`
+Run the server using the following command:
+```shell
+go run main.go
+```
 
+Open your web browser and navigate to http://localhost:5000. You can open multiple tabs or browsers to 
+simulate different clients. As you type messages in the input field and hit `Send` the messages will be broadcast to 
+all connected clients in real-time.
+
+---
 
 
 
